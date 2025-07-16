@@ -11,4 +11,9 @@ export class AppController {
     }
     return { message: `Welcome, ${req.user.username}!` };
   }
+
+  @Get()
+  getHello() {
+    return 'Hello World!';
+  }
 }
