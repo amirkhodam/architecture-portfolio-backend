@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient, Portfolio } from '../../generated/prisma';
+import { PrismaClient } from '../../generated/prisma';
+import { Portfolio, CreatePortfolioDto } from './interfaces/portfolio.interface';
 
 @Injectable()
 export class PortfolioService {
@@ -9,9 +10,7 @@ export class PortfolioService {
     return this.prisma.portfolio.findMany();
   }
 
-  async create(
-    data: Omit<Portfolio, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Portfolio> {
+  async create(data: CreatePortfolioDto): Promise<Portfolio> {
     return this.prisma.portfolio.create({ data });
   }
 

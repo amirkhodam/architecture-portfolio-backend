@@ -3,6 +3,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { PortfolioService } from './portfolio.service';
 import { extname } from 'path';
+import { CreatePortfolioDto, UploadPortfolioDto } from './interfaces/portfolio.interface';
 
 @Controller('portfolios')
 export class PortfolioController {
@@ -19,7 +20,7 @@ export class PortfolioController {
   }
 
   @Post()
-  async create(@Body() body: any) {
+  async create(@Body() body: CreatePortfolioDto) {
     return this.portfolioService.create(body);
   }
 
@@ -38,7 +39,7 @@ export class PortfolioController {
   }))
   async uploadPortfolio(
     @UploadedFiles() files: { images?: Express.Multer.File[]; videos?: Express.Multer.File[] },
-    @Body() body: { title: string; texts: string[] }
+    @Body() body: UploadPortfolioDto
   ) {
     const imagePaths = files.images?.map(file => file.path) || [];
     const videoPaths = files.videos?.map(file => file.path) || [];
