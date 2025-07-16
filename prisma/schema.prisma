@@ -13,3 +13,13 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model Portfolio {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  videos    String[] // URLs or file paths to videos
+  images    String[] // URLs or file paths to images
+  texts     String[] // Text content or descriptions
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
