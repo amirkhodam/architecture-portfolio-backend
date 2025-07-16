@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -7,7 +7,7 @@ export class AuthService {
   private readonly admin = {
     username: 'admin',
     // bcrypt hash for 'admin123'
-    password: '$2a$10$wH8QnQwQwQwQwQwQwQwQwOQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw',
+    password: '$2a$12$Fo3hCNEbkU.Qe1gb.0cQVuwcqRru1pE.SycdRjvxhp52rWB/hsJVm',
     role: 'admin',
   };
 
@@ -16,7 +16,8 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, this.admin.password);
     if (!isMatch) return null;
     // Return user object without password
-    const { password: _, ...result } = this.admin;
+    const result = this.admin;
+    delete result.password;
     return result;
   }
 }
