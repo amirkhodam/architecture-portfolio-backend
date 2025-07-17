@@ -16,10 +16,10 @@ datasource db {
 
 model Portfolio {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
+  title     Json     // { "en": "English Title", "fr": "Titre Français", ... }
   videos    String[] // URLs or file paths to videos
   images    String[] // URLs or file paths to images
-  texts     String[] // Text content or descriptions
+  texts     Json     // { "en": ["desc1", "desc2"], "fr": ["desc1", "desc2"], ... }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
