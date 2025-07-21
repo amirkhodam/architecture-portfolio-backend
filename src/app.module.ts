@@ -6,6 +6,7 @@ import { PortfolioModule } from './portfolio/portfolio.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RouterModule } from '@nestjs/core';
+import { LoggerService } from './logger.service';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { RouterModule } from '@nestjs/core';
     ]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LoggerService],
 })
 export class AppModule {}
