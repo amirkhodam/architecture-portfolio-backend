@@ -14,26 +14,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ELanguages {
+  en @map("en")
+  fr @map("fr")
+}
+
 model Portfolio {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     Json     // { "en": "English Title", "fr": "Titre Français", ... }
-  videos    String[] // URLs or file paths to videos
-  images    String[] // URLs or file paths to images
-  texts     Json     // { "en": ["desc1", "desc2"], "fr": ["desc1", "desc2"], ... }
+  title     Json
+  texts     Json
+  media     Media[] // New relation
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+type Media {
+  id    String
+  name  String
+  path  String
+  type  String // e.g., "image" or "video"
+  index Int
+}
+
 model ContactUs {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   Json     // { "en": "English content", "fr": "Contenu français", ... }
+  content   Json // { "en": "English content", "fr": "Contenu français", ... }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model AboutUs {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   Json     // { "en": "English content", "fr": "Contenu français", ... }
+  content   Json // { "en": "English content", "fr": "Contenu français", ... }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
