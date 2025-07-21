@@ -1,35 +1,26 @@
-export interface Portfolio {
+import { Media } from 'generated/prisma';
+import { ITranslatedString, ITranslatedStrings } from 'src/app.interface';
+
+export interface AddMediaDto {
+  name: string;
+  path: string;
+  type: string;
+}
+
+export interface IPorfolioCreate {
+  title: ITranslatedString;
+  texts: ITranslatedStrings;
+}
+
+export type PortfolioBaseDto = IPorfolioCreate & {
+  media: Media[];
+};
+export type Portfolio = PortfolioBaseDto & {
   id: string;
-  title: string;
-  videos: string[];
-  images: string[];
-  texts: string[];
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface CreatePortfolioDto {
-  title: string;
-  videos: string[];
-  images: string[];
-  texts: string[];
-}
-
-export interface UploadPortfolioDto {
-  title: string;
-  texts: string[];
-}
-
-export interface PortfolioResponse {
-  id: string;
-  title: string;
-  videos: string[];
-  images: string[];
-  texts: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+};
 
 export interface PortfolioListResponse {
-  portfolios: PortfolioResponse[];
-} 
+  portfolios: Portfolio[];
+}
