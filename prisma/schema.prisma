@@ -28,11 +28,16 @@ model Portfolio {
   updatedAt DateTime @updatedAt
 }
 
+enum EMediaType {
+  image @map("image")
+  video @map("video")
+}
+
 type Media {
   id    String
   name  String
   path  String
-  type  String // e.g., "image" or "video"
+  type  EMediaType // e.g., "image" or "video"
   index Int
 }
 
