@@ -203,4 +203,26 @@ export class PortfolioService {
     }
     return deleted;
   }
+
+  /**
+   * Deletes a portfolio and all associated media records from the database.
+   */
+  async deleteById(id: string): Promise<void> {
+    // Fetch the portfolio with its media
+    const portfolio = await this.prisma.portfolio.findUnique({
+      where: { id },
+      include: { media: true },
+    });
+    if (portfolio && Array.isArray(portfolio.media)) {
+      for (const media of portfolio.media) {
+        try {
+          await fs.promises.unlink(media.path);
+        } catch (err) {
+          console.warn(`Failed to delete file: ${media.path}`, err);
+        }
+      }
+    }
+    // Delete the portfolio itself
+    await this.prisma.portfolio.delete({ where: { id } });
+  }
 }

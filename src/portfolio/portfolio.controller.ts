@@ -7,6 +7,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   NotFoundException,
+  Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -40,6 +42,29 @@ export class PortfolioController {
   @Post()
   async create(@Body() body: PortfolioBaseDto) {
     return this.portfolioService.create(body);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deletePortfolio(@Param('id') id: string) {
+    // Remove all media files from disk before deleting the portfolio
+    const portfolio = await this.portfolioService.getById(id);
+    if (!portfolio) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    if (Array.isArray(portfolio.media)) {
+      for (const media of portfolio.media) {
+        try {
+          await fs.promises.unlink(media.path);
+        } catch (err) {
+          // Log error but continue
+          console.warn(`Failed to delete file: ${media.path}`, err);
+        }
+      }
+    }
+    await this.portfolioService.deleteById(id);
+    // 204 No Content
+    return;
   }
 
   @Post(':id/add-media')
