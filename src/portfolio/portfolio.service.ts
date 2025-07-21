@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import {
   AddMediaDto,
+  IPorfolioCreate,
   Portfolio,
-  PortfolioBaseDto,
 } from './interfaces/portfolio.interface';
 import { ITranslatedString, ITranslatedStrings } from '../app.interface';
 import * as fs from 'fs';
 import * as util from 'util';
 import { Media, PrismaClient } from 'generated/prisma';
 import { randomUUID } from 'crypto';
+import * as path from 'path';
 
 const unlinkAsync = util.promisify(fs.unlink);
 
@@ -25,10 +26,11 @@ export class PortfolioService {
     }));
   }
 
-  async create(data: PortfolioBaseDto): Promise<Portfolio> {
+  async create(data: IPorfolioCreate): Promise<Portfolio> {
     const p = await this.prisma.portfolio.create({ data });
     return {
       ...p,
+      media: [],
       title: p.title as ITranslatedString,
       texts: p.texts as ITranslatedStrings,
     };
@@ -52,7 +54,6 @@ export class PortfolioService {
     // 1. Find the portfolio with its current media
     const portfolio = await this.prisma.portfolio.findUnique({
       where: { id },
-      include: { media: true },
     });
 
     if (!portfolio) return null;
@@ -60,25 +61,22 @@ export class PortfolioService {
     // 2. Prepare new media items with generated IDs
     const newMediaItems = media.map((m) => ({
       ...m,
-      // id: new Types.ObjectId().toString(), // Generate new ID for MongoDB
       id: randomUUID(),
-      index: portfolio.media.length + 1, // Auto-increment index
+      index: (portfolio.media?.length || 0) + 1, // Auto-increment index
     }));
 
-    // 3. Update portfolio with new media
+    // 3. Merge existing and new media
+    const updatedMedia = [...(portfolio.media || []), ...newMediaItems];
+
+    // 4. Update portfolio with new media using 'set' instead of 'push'
     const updatedPortfolio = await this.prisma.portfolio.update({
       where: { id },
       data: {
-        media: {
-          push: newMediaItems,
-        },
-      },
-      include: {
-        media: true,
+        media: { set: updatedMedia as any },
       },
     });
 
-    // 4. Transform to match Portfolio interface
+    // 5. Transform to match Portfolio interface
     return {
       ...updatedPortfolio,
       title: updatedPortfolio.title as unknown as ITranslatedString,
@@ -169,5 +167,40 @@ export class PortfolioService {
       texts: updatedPortfolio.texts as ITranslatedStrings,
       media: updatedPortfolio.media,
     };
+  }
+
+  /**
+   * Deletes files from the uploads directory that are not referenced by any portfolio's media.
+   */
+  async deleteUnreferencedFilesFromUploads(): Promise<string[]> {
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    const files = await fs.promises.readdir(uploadsDir);
+    // Get all portfolios with their media
+    const portfolios = await this.prisma.portfolio.findMany({
+      include: { media: true },
+    });
+    const referencedPaths = new Set<string>();
+    for (const portfolio of portfolios) {
+      if (Array.isArray(portfolio.media)) {
+        for (const media of portfolio.media) {
+          if (media.path) {
+            referencedPaths.add(path.resolve(media.path));
+          }
+        }
+      }
+    }
+    const deleted: string[] = [];
+    for (const file of files) {
+      const filePath = path.resolve(uploadsDir, file);
+      if (!referencedPaths.has(filePath)) {
+        try {
+          await fs.promises.unlink(filePath);
+          deleted.push(file);
+        } catch (err) {
+          // Optionally log error
+        }
+      }
+    }
+    return deleted;
   }
 }

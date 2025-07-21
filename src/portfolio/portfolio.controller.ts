@@ -16,7 +16,8 @@ import {
   AddMediaDto,
   PortfolioBaseDto,
 } from './interfaces/portfolio.interface';
-import { Media } from 'generated/prisma';
+import { EMediaType, Media, Portfolio } from 'generated/prisma';
+import * as fs from 'fs';
 
 @Controller()
 export class PortfolioController {
@@ -56,23 +57,41 @@ export class PortfolioController {
   )
   async addMedia(
     @Param('id') id: string,
-    @UploadedFiles() files: { images?: Express.Multer.File[] },
+    @UploadedFiles() files: { media?: Express.Multer.File[] },
   ) {
-    const media: AddMediaDto[] = (files.images || []).map((file) => ({
+    const media: AddMediaDto[] = (files.media || []).map((file) => ({
       name: file.originalname,
       path: file.path,
-      type: file.mimetype, // or infer from file.mimetype if needed
+      type: file.mimetype.includes(EMediaType.image)
+        ? EMediaType.image
+        : EMediaType.video, // or infer from file.mimetype if needed
     }));
-    const updated = await this.portfolioService.addMediaToPortfolio(id, media);
-    if (!updated) {
-      throw new NotFoundException('Portfolio not found');
+    let updated: Portfolio | null;
+    try {
+      updated = await this.portfolioService.addMediaToPortfolio(id, media);
+      if (!updated) {
+        // Remove uploaded files if portfolio not found
+        await Promise.all(
+          (files.media || []).map((file) => fs.promises.unlink(file.path)),
+        );
+        throw new NotFoundException('Portfolio not found');
+      }
+    } catch (err) {
+      // Remove uploaded files if any error occurs
+      await Promise.all(
+        (files.media || []).map((file) => fs.promises.unlink(file.path)),
+      );
+      throw err;
     }
     return updated;
   }
 
   @Post(':id/remove-media')
   async removeMedia(@Param('id') id: string, @Body() body: { media: Media[] }) {
-    const updated = await this.portfolioService.removeMediaFromPortfolio(id, body.media);
+    const updated = await this.portfolioService.removeMediaFromPortfolio(
+      id,
+      body.media,
+    );
     if (!updated) {
       throw new NotFoundException('Portfolio not found');
     }
@@ -84,7 +103,10 @@ export class PortfolioController {
     @Param('id') id: string,
     @Param('mediaId') mediaId: string,
   ) {
-    const updated = await this.portfolioService.removeSingleMediaFromPortfolio(id, mediaId);
+    const updated = await this.portfolioService.removeSingleMediaFromPortfolio(
+      id,
+      mediaId,
+    );
     if (!updated) {
       throw new NotFoundException('Portfolio or media not found');
     }
