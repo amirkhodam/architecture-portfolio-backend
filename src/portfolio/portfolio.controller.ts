@@ -47,7 +47,10 @@ export class PortfolioController {
   }
 
   @Put(':id')
-  async updatePortfolio(@Param('id') id: string, @Body() body: Partial<PortfolioBaseDto>) {
+  async updatePortfolio(
+    @Param('id') id: string,
+    @Body() body: Partial<PortfolioBaseDto>,
+  ) {
     const updated = await this.portfolioService.updateById(id, body);
     if (!updated) {
       throw new NotFoundException('Portfolio not found');
@@ -78,8 +81,6 @@ export class PortfolioController {
     return;
   }
 
-  
-  
   @Post(':id/add-media')
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'media', maxCount: 15 }], {
@@ -99,7 +100,7 @@ export class PortfolioController {
   ) {
     const media: AddMediaDto[] = (files.media || []).map((file) => ({
       name: file.originalname,
-      path: file.path,
+      path: file.path.replace('\\', '/'),
       type: file.mimetype.includes(EMediaType.image)
         ? EMediaType.image
         : EMediaType.video, // or infer from file.mimetype if needed
