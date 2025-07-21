@@ -6,6 +6,7 @@ import {
   Param,
   UseInterceptors,
   UploadedFiles,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -28,7 +29,11 @@ export class PortfolioController {
 
   @Get(':id')
   async getById(@Param('id') id: string) {
-    return this.portfolioService.getById(id);
+    const portfolio = await this.portfolioService.getById(id);
+    if (!portfolio) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return portfolio;
   }
 
   @Post()
@@ -58,12 +63,20 @@ export class PortfolioController {
       path: file.path,
       type: file.mimetype, // or infer from file.mimetype if needed
     }));
-    return this.portfolioService.addMediaToPortfolio(id, media);
+    const updated = await this.portfolioService.addMediaToPortfolio(id, media);
+    if (!updated) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return updated;
   }
 
   @Post(':id/remove-media')
   async removeMedia(@Param('id') id: string, @Body() body: { media: Media[] }) {
-    return this.portfolioService.removeMediaFromPortfolio(id, body.media);
+    const updated = await this.portfolioService.removeMediaFromPortfolio(id, body.media);
+    if (!updated) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return updated;
   }
 
   @Post(':id/remove-media/:mediaId')
@@ -71,6 +84,10 @@ export class PortfolioController {
     @Param('id') id: string,
     @Param('mediaId') mediaId: string,
   ) {
-    return this.portfolioService.removeSingleMediaFromPortfolio(id, mediaId);
+    const updated = await this.portfolioService.removeSingleMediaFromPortfolio(id, mediaId);
+    if (!updated) {
+      throw new NotFoundException('Portfolio or media not found');
+    }
+    return updated;
   }
 }

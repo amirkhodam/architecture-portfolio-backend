@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LoggerService } from './logger.service';
 
@@ -10,7 +10,7 @@ export class AppController {
   @Get('admin')
   getAdmin(@Request() req) {
     if (req.user.role !== 'admin') {
-      return { message: 'Forbidden' };
+      throw new ForbiddenException('Forbidden');
     }
     return { message: `Welcome, ${req.user.username}!` };
   }
