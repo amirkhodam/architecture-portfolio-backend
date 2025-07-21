@@ -9,6 +9,8 @@ import {
   NotFoundException,
   Delete,
   HttpCode,
+  Patch,
+  Put,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -44,6 +46,15 @@ export class PortfolioController {
     return this.portfolioService.create(body);
   }
 
+  @Put(':id')
+  async updatePortfolio(@Param('id') id: string, @Body() body: Partial<PortfolioBaseDto>) {
+    const updated = await this.portfolioService.updateById(id, body);
+    if (!updated) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return updated;
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async deletePortfolio(@Param('id') id: string) {
@@ -67,6 +78,8 @@ export class PortfolioController {
     return;
   }
 
+  
+  
   @Post(':id/add-media')
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'media', maxCount: 15 }], {

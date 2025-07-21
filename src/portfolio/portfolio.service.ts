@@ -170,6 +170,34 @@ export class PortfolioService {
   }
 
   /**
+   * Updates a portfolio by its ID.
+   */
+  async updateById(
+    id: string,
+    data: Partial<IPorfolioCreate>,
+  ): Promise<Portfolio | null> {
+    if ('id' in data) delete data.id;
+    const updated = await this.prisma.portfolio
+      .update({
+        where: { id },
+        data,
+      })
+      .catch((e) => {
+        console.log(id);
+        console.error(e);
+
+        throw e;
+      });
+    if (!updated) return null;
+    return {
+      ...updated,
+      title: updated.title as ITranslatedString,
+      texts: updated.texts as ITranslatedStrings,
+      media: updated.media,
+    };
+  }
+
+  /**
    * Deletes files from the uploads directory that are not referenced by any portfolio's media.
    */
   async deleteUnreferencedFilesFromUploads(): Promise<string[]> {
