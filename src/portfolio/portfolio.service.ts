@@ -174,6 +174,34 @@ export class PortfolioService {
    */
   async updateById(
     id: string,
+    data: IPorfolioCreate,
+  ): Promise<Portfolio | null> {
+    if ('id' in data) delete data.id;
+    const updated = await this.prisma.portfolio
+      .update({
+        where: { id },
+        data,
+      })
+      .catch((e) => {
+        console.log(id);
+        console.error(e);
+
+        throw e;
+      });
+    if (!updated) return null;
+    return {
+      ...updated,
+      title: updated.title as ITranslatedString,
+      texts: updated.texts as ITranslatedStrings,
+      media: updated.media,
+    };
+  }
+
+  /**
+   * Updates a portfolio by its ID.
+   */
+  async patchById(
+    id: string,
     data: Partial<IPorfolioCreate>,
   ): Promise<Portfolio | null> {
     if ('id' in data) delete data.id;

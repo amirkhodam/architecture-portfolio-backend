@@ -49,9 +49,21 @@ export class PortfolioController {
   @Put(':id')
   async updatePortfolio(
     @Param('id') id: string,
-    @Body() body: Partial<PortfolioBaseDto>,
+    @Body() body: PortfolioBaseDto,
   ) {
     const updated = await this.portfolioService.updateById(id, body);
+    if (!updated) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return updated;
+  }
+
+  @Patch(':id')
+  async patchPortfolio(
+    @Param('id') id: string,
+    @Body() body: Partial<PortfolioBaseDto>,
+  ) {
+    const updated = await this.portfolioService.patchById(id, body);
     if (!updated) {
       throw new NotFoundException('Portfolio not found');
     }
